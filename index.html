@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raccoon Empire</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: linear-gradient(160deg,#102d22,#071710);
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+h1 { color: #f5c94d; margin-bottom: 5px; }
+.subtitle { color: #b8cbbd; }
+.balance {
+  margin: 25px auto 10px;
+  font-size: 35px;
+  font-weight: bold;
+  color: #ffd75e;
+}
+.coin-label { color: #d6c58b; }
+.rico {
+  font-size: 145px;
+  margin: 25px auto;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .08s;
+}
+.rico:active { transform: scale(.91); }
+.energy-box {
+  background: #244a37;
+  border-radius: 20px;
+  padding: 12px;
+  margin: 15px auto;
+  max-width: 350px;
+}
+.energy-bg {
+  height: 12px;
+  background: #10251b;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.energy-fill {
+  height: 100%;
+  width: 100%;
+  background: #75dc77;
+}
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 20px;
+  background: #e8b93e;
+  color: #24200e;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 7px;
+}
+.panel {
+  background: #193b2b;
+  padding: 16px;
+  border-radius: 16px;
+  margin: 12px auto;
+  max-width: 350px;
+}
+.small { color: #b8cbbd; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>🦝 RACCOON EMPIRE</h1>
+<div class="subtitle">Империя начинается с тебя!</div>
+
+<div class="balance" id="balance">0</div>
+<div class="coin-label">🪙 RICO COIN</div>
+
+<div class="rico" id="rico">🦝</div>
+<div class="small">Нажимай на Рико и собирай монеты!</div>
+
+<div class="energy-box">
+  ⚡ Энергия: <span id="energy">1000</span> / 1000
+  <div class="energy-bg">
+    <div class="energy-fill" id="energyFill"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <b>🚀 Улучшение силы</b>
+  <p>Монет за нажатие: <span id="power">1</span></p>
+  <p>Стоимость: <span id="price">100</span> RICO COIN</p>
+  <button id="upgrade">Улучшить</button>
+</div>
+
+<div class="panel">
+  <b>🏆 Твой прогресс</b>
+  <p>Всего заработано: <span id="total">0</span></p>
+  <p class="small">Скоро здесь появятся задания и рейтинги!</p>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+let balance = Number(localStorage.getItem("ricoBalance")) || 0;
+let energy = Number(localStorage.getItem("ricoEnergy"));
+if (!Number.isFinite(energy)) energy = 1000;
+
+let power = Number(localStorage.getItem("ricoPower")) || 1;
+let price = Number(localStorage.getItem("ricoPrice")) || 100;
+let total = Number(localStorage.getItem("ricoTotal")) || 0;
+
+function save() {
+  localStorage.setItem("ricoBalance", balance);
+  localStorage.setItem("ricoEnergy", energy);
+  localStorage.setItem("ricoPower", power);
+  localStorage.setItem("ricoPrice", price);
+  localStorage.setItem("ricoTotal", total);
+}
+
+function update() {
+  document.getElementById("balance").textContent =
+    balance.toLocaleString("ru-RU");
+  document.getElementById("energy").textContent = energy;
+  document.getElementById("power").textContent = power;
+  document.getElementById("price").textContent = price;
+  document.getElementById("total").textContent =
+    total.toLocaleString("ru-RU");
+  document.getElementById("energyFill").style.width =
+    (energy / 1000 * 100) + "%";
+}
+
+document.getElementById("rico").addEventListener("click", () => {
+  if (energy < 1) {
+    tg.showAlert("Рико устал! Подожди восстановления энергии.");
+    return;
+  }
+
+  balance += power;
+  total += power;
+  energy -= 1;
+  save();
+  update();
+});
+
+document.getElementById("upgrade").addEventListener("click", () => {
+  if (balance < price) {
+    tg.showAlert("Пока недостаточно RICO COIN!");
+    return;
+  }
+
+  balance -= price;
+  power += 1;
+  price = Math.ceil(price * 1.6);
+  save();
+  update();
+  tg.HapticFeedback?.notificationOccurred("success");
+});
+
+setInterval(() => {
+  if (energy < 1000) {
+    energy = Math.min(1000, energy + 1);
+    save();
+    update();
+  }
+}, 3000);
+
+update();
+</script>
+
+</body>
+</html>
